@@ -2,8 +2,8 @@
   "schema": {
     "type": "service_blueprint",
     "version": {
-      "major": 1,
-      "minor": 0
+      "major": 0,
+      "minor": 1
     },
     "origin": "Engines Developer Studio 0.2"
   },
@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2017-11-20T11:40:22+11:00"
+    "timestamp": "2018-01-12T18:50:45+11:00"
   },
   "software": {
     "base": {
@@ -30,12 +30,14 @@
       "publisher_namespace": "EnginesSystem",
       "type_path": "smtp",
       "parent_image": "engines/servicebase",
-      "run_as_user": "postfix",
       "deployment_type": "worker",
       "memory": {
         "required": 64,
         "recommended": 96
       },
+      "run_as_user": "postfix"
+    },
+    "disposition": {
       "attach_post_build": true
     },
     "actionators": [
@@ -161,6 +163,48 @@
         "read_script": {
           "language": "sh",
           "content": "#!/bin/bash\r\n\r\nif test -f /home/engines/scripts/configurators/saved/default_domain\r\n then\r\n\tcat /home/engines/scripts/configurators/saved/default_domain\r\nelse\r\n\techo '{\"default_domain\":\"Not Set\"}'\r\nfi\r\nexit 0"
+        }
+      },
+      {
+        "name": "notifications_email",
+        "label": "Notifications email",
+        "enable_logging": true,
+        "variables": [
+          {
+            "name": "notifications_email",
+            "input": {
+              "type": "email",
+              "label": "Destination for emails sent to system admin"
+            }
+          },
+          {
+            "name": "postmaster_email",
+            "input": {
+              "type": "email",
+              "label": "Postmasters email ",
+              "comment": "defaults to notifications email"
+            }
+          },
+          {
+            "name": "webmaster_email",
+            "input": {
+              "type": "email",
+              "label": "Webmaster email address",
+              "comment": "defaults to notifications email"
+            }
+          },
+          {
+            "name": "hostmaster_email",
+            "input": {
+              "type": "boolean",
+              "label": "Hostmaster email",
+              "comment": "defaults to notifications email"
+            }
+          }
+        ],
+        "set_script": {
+          "language": "sh",
+          "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/notifications_email\r\nparms_to_file_and_env\r\n     \r\n     \r\nrequired_values=\"notifications_email\"\r\ncheck_required_values \r\n\r\n\r\nif test -z $postmaster_email\r\n  then\r\n   postmaster_email=$notifications_email fi\r\nif test -z $hostmaster_email\r\n  then\r\n   hostmaster_email=$notifications_email\r\nfi\r\nif test -z $webmaster_email\r\n  then\r\n   webmaster_email=$notifications_email\r\nfi \r\n\r\n\r\nALIAS_FILE=/tmp/aliases\r\ncat /home/engines/templates/aliases | while read LINE\r\ndo\r\n eval echo $LINE >> $ALIAS_FILE\r\ndone\r\n\r\nsudo -n /home/engines/scripts/configurators/_$0"
         }
       }
     ]
