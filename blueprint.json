@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2018-01-19T13:16:34+11:00"
+    "timestamp": "2018-01-19T13:50:45+11:00"
   },
   "software": {
     "base": {
@@ -142,7 +142,7 @@
             "name": "deliver_local",
             "value": "false",
             "input": {
-              "type": "boolean"
+              "type": "checkbox_boolean"
             }
           },
           {
