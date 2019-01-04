@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2018-01-19T13:50:45+11:00"
+    "timestamp": "2019-01-04T14:01:10+11:00"
   },
   "software": {
     "base": {
@@ -31,6 +31,8 @@
       "type_path": "smtp",
       "parent_image": "engines/servicebase",
       "deployment_type": "worker",
+      "default_stop_timeout": 0,
+      "restart_attempts": 0,
       "memory": {
         "required": 64,
         "recommended": 96
@@ -64,6 +66,15 @@
         "label": "Remove email from queue",
         "return_type": "json",
         "enable_logging": true,
+        "variables": [
+          {
+            "name": "queue_id",
+            "input": {
+              "type": "string",
+              "label": "Queue id"
+            }
+          }
+        ],
         "script": {
           "language": "sh",
           "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nparams_to_env\r\n\r\nrequired_values=\"queue_id\"\r\ncheck_required_values \r\n\r\n\r\nsudo -n /home/engines/scripts/actionators/_rm_email.sh   $queue_id &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n  \r\n"
