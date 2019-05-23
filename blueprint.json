@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-05-23T11:58:25+10:00"
+    "timestamp": "2019-05-23T12:15:35+10:00"
   },
   "software": {
     "base": {
@@ -99,7 +99,7 @@
       },
       {
         "name": "create_domain_dkim",
-        "return_type": "none",
+        "return_type": "json",
         "variables": [
           {
             "name": "domain_name",
@@ -125,7 +125,7 @@
       },
       {
         "name": "import_domain_dkim",
-        "return_type": "none",
+        "return_type": "json",
         "variables": [
           {
             "name": "domain_name",
