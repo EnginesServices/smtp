@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-05-21T12:38:31+10:00"
+    "timestamp": "2019-05-23T11:12:54+10:00"
   },
   "software": {
     "base": {
@@ -81,19 +81,6 @@
         }
       },
       {
-        "name": "create_domain_dkim",
-        "return_type": "none",
-        "variables": [
-          {
-            "name": "domain_name",
-            "mandatory": true,
-            "input": {
-              "type": "string"
-            }
-          }
-        ]
-      },
-      {
         "name": "domain_dkim_text",
         "return_type": "plain_text",
         "variables": [
@@ -107,48 +94,8 @@
         ]
       },
       {
-        "name": "rm_domain_dkim",
-        "return_type": "none",
-        "variables": [
-          {
-            "name": "domain_name",
-            "mandatory": true,
-            "input": {
-              "type": "string"
-            }
-          }
-        ]
-      },
-      {
         "name": "domains_dkim_list",
         "return_type": "json"
-      },
-      {
-        "name": "import_domain_dkim",
-        "return_type": "none",
-        "variables": [
-          {
-            "name": "domain_name",
-            "mandatory": true,
-            "input": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "private",
-            "mandatory": true,
-            "input": {
-              "type": "text"
-            }
-          },
-          {
-            "name": "public",
-            "mandatory": true,
-            "input": {
-              "type": "text"
-            }
-          }
-        ]
       }
     ],
     "configurators": [
@@ -286,6 +233,56 @@
           "language": "sh",
           "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/notifications_email\r\nparms_to_file_and_env\r\n     \r\n     \r\nrequired_values=\"notifications_email\"\r\ncheck_required_values \r\n\r\n\r\nif test -z $postmaster_email\r\n  then\r\n   postmaster_email=$notifications_email fi\r\nif test -z $hostmaster_email\r\n  then\r\n   hostmaster_email=$notifications_email\r\nfi\r\nif test -z $webmaster_email\r\n  then\r\n   webmaster_email=$notifications_email\r\nfi \r\n\r\n\r\nALIAS_FILE=/tmp/aliases\r\ncat /home/engines/templates/aliases | while read LINE\r\ndo\r\n eval echo $LINE >> $ALIAS_FILE\r\ndone\r\n\r\nsudo -n /home/engines/scripts/configurators/_$0"
         }
+      },
+      {
+        "name": "create_domain_dkim",
+        "variables": [
+          {
+            "name": "domain_name",
+            "mandatory": true,
+            "input": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      {
+        "name": "rm_domain_dkim",
+        "variables": [
+          {
+            "name": "domain_name",
+            "mandatory": true,
+            "input": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      {
+        "name": "import_domain_dkim",
+        "variables": [
+          {
+            "name": "domain_name",
+            "mandatory": true,
+            "input": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "private",
+            "mandatory": true,
+            "input": {
+              "type": "text"
+            }
+          },
+          {
+            "name": "public",
+            "mandatory": true,
+            "input": {
+              "type": "text"
+            }
+          }
+        ]
       }
     ]
   }
