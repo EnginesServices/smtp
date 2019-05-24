@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-05-23T12:15:35+10:00"
+    "timestamp": "2019-05-23T12:56:08+10:00"
   },
   "software": {
     "base": {
@@ -149,6 +149,14 @@
             }
           }
         ]
+      },
+      {
+        "name": "clear_deffered_queue",
+        "return_type": "plain_text"
+      },
+      {
+        "name": "clear_complete_queue",
+        "return_type": "plain_text"
       }
     ],
     "configurators": [
