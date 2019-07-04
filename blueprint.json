@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-05-23T12:56:08+10:00"
+    "timestamp": "2019-07-04T10:06:10+10:00"
   },
   "software": {
     "base": {
@@ -49,7 +49,7 @@
         "return_type": "json",
         "script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\nTMP_FILE=`mktemp`\r\npostqueue -j 2> $TMP_FILE.err 1> $TMP_FILE\r\nresult=$?\r\n\r\nif test $result -ne 0\r\n then\r\n   string_for_json=`cat $TMP_FILE.err`\r\n   rm /tmp/err\r\n   string_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nelse\r\n  echo '{\"email_queue\":['\r\n  one=1\r\n    cat $TMP_FILE | while read LINE\r\n     do\r\n       if test $one -eq 1\r\n         then\r\n          one=0\r\n       else\r\n          echo -n \",\"\r\n       fi\r\n      echo  -n $LINE\r\n    done\r\n  echo ']}'\r\nfi\r\n\r\nfor FILE in $TMP_FILE.err $TMP_FILE\r\n do\r\n  if test -f $FILE\r\n   then\r\n     rm $FILE\r\n  fi\r\ndone\r\n"
+          "content": "#!/bin/sh\r\nTMP_FILE=`mktemp`\r\npostqueue -j 2> $TMP_FILE.err 1> $TMP_FILE\r\nresult=$?\r\n\r\nif test $result -ne 0\r\n then\r\n   string_for_json=`cat $TMP_FILE.err`\r\n   rm /tmp/err\r\n   string_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nelse\r\n  echo '{\"email_queue\":['\r\n  one=1\r\n    cat $TMP_FILE | while read LINE\r\n     do\r\n       if test $one -eq 1\r\n         then\r\n          one=0\r\n       else\r\n          echo -n \",\"\r\n       fi\r\n      echo  -n $LINE\r\n    done\r\n  echo ']}'\r\nfi\r\n\r\nfor FILE in $TMP_FILE.err $TMP_FILE\r\n do\r\n  if test -f $FILE\r\n   then\r\n     rm $FILE\r\n  fi\r\ndone\r\n"
         }
       },
       {
@@ -58,7 +58,7 @@
         "return_type": "json",
         "script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\npostqueue -f &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\n  \r\n  fi \r\n"
+          "content": "#!/bin/sh\r\n\r\npostqueue -f &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\n  \r\n  fi \r\n"
         }
       },
       {
@@ -77,7 +77,7 @@
         ],
         "script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nparams_to_env\r\n\r\nrequired_values=\"queue_id\"\r\ncheck_required_values \r\n\r\n\r\nsudo -n /home/engines/scripts/actionators/_rm_email.sh   $queue_id &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n  \r\n"
+          "content": "#!/bin/sh\r\n\r\nrequired_values=\"queue_id\"\r\ncheck_required_values \r\n\r\n\r\nsudo -n /home/engines/scripts/actionators/_rm_email.sh   $queue_id &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n  \r\n"
         }
       },
       {
@@ -294,6 +294,18 @@
           "language": "sh",
           "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/notifications_email\r\nparms_to_file_and_env\r\n     \r\n     \r\nrequired_values=\"notifications_email\"\r\ncheck_required_values \r\n\r\n\r\nif test -z $postmaster_email\r\n  then\r\n   postmaster_email=$notifications_email fi\r\nif test -z $hostmaster_email\r\n  then\r\n   hostmaster_email=$notifications_email\r\nfi\r\nif test -z $webmaster_email\r\n  then\r\n   webmaster_email=$notifications_email\r\nfi \r\n\r\n\r\nALIAS_FILE=/tmp/aliases\r\ncat /home/engines/templates/aliases | while read LINE\r\ndo\r\n eval echo $LINE >> $ALIAS_FILE\r\ndone\r\n\r\nsudo -n /home/engines/scripts/configurators/_$0"
         }
+      },
+      {
+        "name": "max_send_size",
+        "label": "Maximum outbound email size (bytes)",
+        "variables": [
+          {
+            "name": "max_size",
+            "input": {
+              "type": "integer"
+            }
+          }
+        ]
       }
     ]
   }
