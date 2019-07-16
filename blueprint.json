@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-07-04T10:06:10+10:00"
+    "timestamp": "2019-07-16T11:10:25+10:00"
   },
   "software": {
     "base": {
@@ -210,6 +210,12 @@
             "input": {
               "type": "password_with_confirmation",
               "label": "Password for Smart host authentication"
+            }
+          },
+          {
+            "name": "enabled",
+            "input": {
+              "type": "checkbox_boolean"
             }
           }
         ],
