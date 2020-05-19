@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2019-07-16T11:10:25+10:00"
+    "timestamp": "2020-05-19T13:11:24+10:00"
   },
   "software": {
     "base": {
@@ -40,8 +40,107 @@
       "run_as_user": "postfix"
     },
     "disposition": {
-      "attach_post_build": true
+      "attach_post_build": true,
+      "start_syslog": true
     },
+    "scripts": {
+      "start": {
+        "language": "sh",
+        "content": "#!/bin/sh\r\n\r\nPID_FILE=/tmp/sleep.pid\r\nexport PID_FILE\r\n\r\nKILL_SCRIPT=/home/engines/scripts/signal/kill_sleep.sh\r\nexport KILL_SCRIPT\r\n\r\n. /home/engines/functions/trap.sh\r\ninit_dbs()\r\n{\r\n  \r\n  \r\n}\r\n\r\nservice_first_run_check\r\n\r\n\r\n\r\nsudo -nu opendkim /home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\nsudo -n -u opendkim /usr/sbin/opendkim  -l -W -v\r\necho $! > /home/engines/run/opendkim.pid \r\n\r\nsudo -n /home/engines/scripts/startup/sudo/_start_postfix.sh \r\nr=$?\r\n\r\nif test $r -eq 0\r\n then\r\n    startup_complete\r\n\tsleep 5\t\r\n else\r\n  echo \"Failed with $r\"\r\n  exit $r\t  \r\nfi\r\n\r\n\r\nwhile ! test -f /home/engines/run/flags/sig_term -o -f /home/engines/run/flags/sig_quit\r\n do \t\t\r\n\t if ! test -f /var/spool/postfix/pid/master.pid\r\n\t  then\r\n\t   echo Exit as master pid file missing \r\n\t   break\r\n\t fi\r\n    sleep 120 &\r\n    echo $! >/tmp/sleep.pid\r\n\twait \t\t\r\n\texit_code=$?\t\t\r\ndone\t\r\n\r\n\r\n/home/engines/scripts/signal/kill_sleep.sh\r\n\r\nshutdown_complete\r\n\r\n"
+      },
+      "start_sudo": {
+        "content": "#!/bin/sh\r\n\r\nif test -f /var/spool/postfix/pid/master.pid\r\n then\r\n\trm /var/spool/postfix/pid/master.pid\r\n fi\r\n\r\n/home/engines/scripts/startup/sudo/_setup_dirs.sh\r\n\r\nfor map_file in transport generic smarthost_passwd aliases/aliases\r\n do \r\n  if ! test -f /etc/postfix/${map_file}.db\r\n   then\r\n     /home/engines/scripts/engine/sudo/_postmap.sh ${map_file}\r\n  fi  \r\ndone \r\n\r\n/usr/lib/postfix/sbin/master -w"
+      },
+      "first_run": {
+        "language": "sh",
+        "content": "#!/bin/sh\r\n\r\n\r\nif ! test -f /etc/postfix/mailname\r\n then\r\n sudo -n /home/engines/scripts/engine/sudo/_set_mailname.sh \"smtp.engines.internal\"\r\n fi\r\n\r\nif ! test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n  then\r\n    max_size=10240000 /home/engines/scripts/configurators/set_max_send_size.sh\r\nfi\r\n\r\nfor file in transport generic smarthost_passwd aliases/aliases\r\n do\r\n  sudo -n /home/engines/scripts/engine/sudo/_postmap.sh $file\r\ndone \r\n"
+      },
+      "first_run_sudo": {
+        "language": "sh"
+      },
+      "shutdown": {
+        "content": "#!/bin/sh\r\n\r\nif test -f /var/spool/postfix/pid/master.pid\r\n then\r\n  pid=`cat /var/spool/postfix/pid/master.pid`\r\n  sudo -n /home/engines/scripts/signal/sudo/_kill_postfix.sh $1\r\n   if ! test $1 = HUP\r\n    then\r\n      wait_for_pid_exit\r\n   fi\r\nfi\r\n"
+      }
+    },
+    "system_packages": [
+      {
+        "package": "postfix"
+      }
+    ],
+    "service_configurations": [
+      {
+        "publisher_namespace": "EnginesSystem",
+        "type_path": "filesystem/local/filesystem",
+        "variables": {
+          "service_name": "spool",
+          "volume_src": "",
+          "engine_path": "/var/spool/postfix/",
+          "permissions": "rw",
+          "user": "postfix",
+          "group": "postfix",
+          "fw_user": "postfix",
+          "exclude_from_backup": "false"
+        }
+      },
+      {
+        "publisher_namespace": "EnginesSystem",
+        "type_path": "filesystem/local/filesystem",
+        "variables": {
+          "service_name": "dkim",
+          "volume_src": "",
+          "engine_path": "/etc/opendkim/keys",
+          "permissions": "rw",
+          "user": "",
+          "group": "postfix",
+          "fw_user": "postfix",
+          "exclude_from_backup": "false"
+        }
+      }
+    ],
+    "template_files": [
+      {
+        "path": "/some/tenm",
+        "language": "lua",
+        "content": "sd\r\nlua contaet",
+        "user": "f",
+        "group": "f",
+        "permissions": "755"
+      }
+    ],
+    "replacement_strings": [
+      {
+        "string": "string",
+        "source_file": "src",
+        "destination_file": "dest"
+      }
+    ],
+    "consumer_scripts": {
+      "add": {
+        "language": "javascript"
+      },
+      "add_sudo": {
+        "language": "javascript"
+      },
+      "update": {
+        "language": "javascript"
+      },
+      "remove": {
+        "language": "javascript"
+      },
+      "remove_sudo": {
+        "language": "text"
+      }
+    },
+    "custom_files": [
+      {
+        "type": "signal",
+        "path": "somehwyere whay is  this dor",
+        "language": "sh",
+        "content": "custome ?",
+        "execute": true,
+        "sudo": true
+      }
+    ],
     "actionators": [
       {
         "name": "show_queue",
@@ -58,7 +157,7 @@
         "return_type": "json",
         "script": {
           "language": "sh",
-          "content": "#!/bin/sh\r\n\r\npostqueue -f &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\n  \r\n  fi \r\n"
+          "content": "#!/bin/sh\r\n\r\nfq=`mktemp`\r\npostqueue -f &> $fq\r\n\r\nresult=$?\r\n\r\nstring_for_json=`cat $fq`\r\n\r\nrm $fq\r\n\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\n\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\nelse\r\n echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n"
         }
       },
       {
@@ -77,7 +176,10 @@
         ],
         "script": {
           "language": "sh",
-          "content": "#!/bin/sh\r\n\r\nrequired_values=\"queue_id\"\r\ncheck_required_values \r\n\r\n\r\nsudo -n /home/engines/scripts/actionators/_rm_email.sh   $queue_id &> /tmp/err\r\nresult=$?\r\nstring_for_json=`cat /tmp/err`\r\nrm /tmp/err\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n  \r\n"
+          "content": "#!/bin/sh\r\n\r\n . /home/engines/functions/checks.sh\r\nrequired_values=\"queue_id\"\r\ncheck_required_values \r\n\r\nrf=`mktemp`\r\nsudo -n /home/engines/scripts/actionators/sudo/_rm_email.sh   $queue_id &> $rf\r\nresult=$?\r\nstring_for_json=`cat $rf`\r\nrm $rf\r\nstring_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\nif test $result -eq 0\r\n then\r\n  echo '{\"Result\":\"OK\"}'\r\n  else\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nfi \r\n  "
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\n\r\nif ! test -z $1\r\n then\r\n  postsuper -d $1 \r\nfi"
         }
       },
       {
@@ -91,11 +193,17 @@
               "type": "string"
             }
           }
-        ]
+        ],
+        "script": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\n\r\n\r\ncat /etc/opendkim/keys/${domain_name}/mail.txt"
+        }
       },
       {
         "name": "domains_dkim_list",
-        "return_type": "json"
+        "return_type": "json",
+        "script": {
+          "content": "#!/bin/sh\r\n\r\n\r\n\r\necho -n '{\"dkim_domains\":['\r\n\r\nif test -d /etc/opendkim/keys/\r\n then\r\n  cd /etc/opendkim/keys/\r\n  n=0\r\n  for domain in `ls`\r\n   do\r\n    if test $n -ne 0\r\n     then\r\n      echo -n \",\"\r\n    else\r\n      n=1\r\n    fi  \r\n    echo -n '\"'$domain'\"'\r\ndone\r\nfi\r\n\r\necho ']}'\r\n\r\n"
+        }
       },
       {
         "name": "create_domain_dkim",
@@ -108,7 +216,13 @@
               "type": "string"
             }
           }
-        ]
+        ],
+        "script": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\n \r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\n\r\nsudo -nu opendkim /home/engines/scripts/actionators/sudo/_create_domain_dkim.sh $domain_name\r\n\r\n\r\n"
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\n domain_name=$1\r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\nif test -f /etc/opendkim/keys/$domain_name/mail.private\r\n then\r\n  echo '{\"error\":\"Domain key exists for '$domain_name'\"}'\r\n  exit 2\r\n fi\r\n\r\ndomain_dir=/etc/opendkim/keys/$domain_name\r\nmkdir -p $domain_dir\r\n\r\ncd $domain_dir\r\nopendkim-genkey -t -s mail -d $domain_name\r\nchmod ugo+r $domain_dir/mail.txt\r\n\r\n/home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\n echo '{\"Success\":\"Domain key for '$domain_name' Created\"}'\r\nexit 0\r\n\r\n"
+        }
       },
       {
         "name": "rm_domain_dkim",
@@ -121,7 +235,13 @@
               "type": "string"
             }
           }
-        ]
+        ],
+        "script": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\nsudo -nu opendkim /home/engines/scripts/actionators/sudo/_rm_domain_dkim.sh $domain_name\r\n"
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n domain_name=$1\r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\n\r\nrm -r  /etc/dkim/keys/$domain_name /etc/opendkim/keys/$domain_name\r\n\r\n/home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\n\r\n"
+        }
       },
       {
         "name": "import_domain_dkim",
@@ -148,15 +268,33 @@
               "type": "text"
             }
           }
-        ]
+        ],
+        "script": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\n \r\nrequired_values=\"domain_name private public\"\r\ncheck_required_values\r\n\r\necho $public >/tmp/public\r\n\r\necho $private | sudo -nu opendkim /home/engines/scripts/actionators/sudo/_import_domain_dkim.sh $domain_name\r\n"
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n \r\ndomain_name=$1\r\n\r\n\r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\n\r\nif test -f /etc/opendkim/keys/$domain_name/mail.private\r\n then\r\n  echo '{\"error\":\"Domain key exists for '$domain_name'\"}'\r\n  exit 2\r\nfi\r\n\r\ndomain_dir=/etc/opendkim/keys/$domain_name\r\nmkdir -p $domain_dir\r\ncat - > $domain_dir/mail.private\r\nchmod go-rw $domain_dir/mail.private\r\nchown opendkim -R $domain_dir\r\nmv /tmp/public > $domain_dir/mail.txt\r\nchmod g+r $domain_dir/mail.txt\r\n/home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\n\r\n echo '{\"Success\":\"Domain key for '$domain_name' Imported\"}'\r\nexit 0\r\n"
+        }
       },
       {
         "name": "clear_deffered_queue",
-        "return_type": "plain_text"
+        "return_type": "plain_text",
+        "script": {
+          "content": "#!/bin/sh\r\n\r\nsudo -n /home/engines/scripts/actionators/sudo/_clear_deffered.sh\r\n"
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\n\r\npostsuper -d ALL deferred\r\n"
+        }
       },
       {
         "name": "clear_complete_queue",
-        "return_type": "plain_text"
+        "return_type": "plain_text",
+        "script": {
+          "content": "\r\nsudo -n /home/engines/scripts/actionators/sudo/_clear_complete_queue.sh\r\n"
+        },
+        "script_sudo": {
+          "content": "#!/bin/sh\r\npostsuper -d ALL \r\n"
+        }
       }
     ],
     "configurators": [
@@ -221,11 +359,11 @@
         ],
         "set_script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/smarthost\r\nparms_to_file_and_env\r\n     \r\n     \r\nrequired_values=\"smart_hostname\"\r\ncheck_required_values \r\n   \r\nif ! test -z $smart_hostname\r\n then \r\n   if ! test -z $smart_host_port\r\n\tthen\r\n\t\tsmart_host_port=25\r\n   fi\r\n\r\n   echo \"*\tsmtp:$smart_hostname:$smart_host_port\"  > /home/postfix/transport.smart\r\n   cp /etc/postfix/transport.smart /home/postfix/transport\r\nelse\r\n    rm -r /etc/postfix/transport.smart\r\n    touch /etc/postfix/transport.smart\r\n\trm /home/postfix/transport\r\nfi \r\n\r\n\r\nif test -f /home/engines/scripts/configurators/saved/default_domain\r\n  then\r\n   cat /home/engines/scripts/configurators/saved/default_domain | /home/engines/bin/json_to_env >/tmp/.2env\r\n   . /tmp/.2env\r\n    if test $deliver_local -eq 1\r\n     then\r\n      echo \"[$domain_name] :email.engines.internal\" >> /home/postfix/transport\r\n    fi\r\nfi\r\n    \r\nsudo -n /home/engines/scripts/engine/_postmap.sh transport\r\n\r\n \r\n if ! test -z $mail_name\r\n then\r\n \techo $mail_name > /etc/postfix/mailname\r\n fi\r\n sudo -n /home/engines/scripts/engine/_set_mailname.sh $mail_name\r\n \r\n\r\nif test -z $smarthost_password\r\n then \t\r\n  rm /home/postfix/smarthost_passwd\r\nelse\r\n echo \"$smarthost_hostname $smarthost_username:$smarthost_password\" > /home/postfix/smarthost_passwd\r\nfi\r\n\r\nsudo -n /home/engines/scripts/engine/_postmap.sh smarthost_passwd     \r\n\r\nexit 0"
+          "content": "#!/bin/sh\r\n\r\n. /home/engines/functions/checks.sh  \r\n\r\n     echo \"smart_hostname=$smart_hostname\r\n           smart_host_port=$smart_host_port\r\n           smart_host_user=$smart_host_user\r\n           auth_type=$auth_type\r\n           enabled=$enabled\r\n           smart_host_passwd=$smart_host_passwd\" > /home/engines/scripts/configurators/saved/smarthost\r\n     \r\nrequired_values=\"enabled\"\r\ncheck_required_values \r\n\r\n\r\nif test $enabled = true\r\n then\r\n  required_values=\"smart_hostname auth_type\"\r\n  check_required_values\r\n  if ! test -z $smart_host_port\r\n    then\r\n\t smart_host_port=25\r\n  fi\r\n  \r\n echo \"*\tsmtp:$smart_hostname:$smart_host_port\"  > /home/postfix/transport.smart\r\n  if test -z $smart_host_passwd\r\n   then \t\r\n    rm /home/postfix/smarthost_passwd\r\n  else\r\n    echo \"$smart_hostname $smart_host_user:$smart_host_passwd\" > /home/postfix/smarthost_passwd\r\n    sudo -n /home/engines/scripts/engine/sudo/_postmap.sh smarthost_passwd     \r\n  fi   \r\nelse\r\n\trm /home/postfix/transport.smart\r\n\trm /home/postfix/transport\r\nfi \r\n\r\n/home/engines/scripts/configurators/build_transport.sh\r\nsudo -n /home/engines/scripts/configurators/sudo/_rebuild_main.sh\r\n#\r\n#if test -f /home/engines/scripts/configurators/saved/deliver_local\r\n# then\r\n#  if test -f /home/engines/scripts/configurators/saved/domain\r\n#   then\r\n#    domain_name=`cat /home/engines/scripts/configurators/saved/domain`   \r\n#    echo \"[$domain_name] :email.engines.internal\" >> /home/postfix/transport\r\n#  fi\r\n#fi\r\n#    \r\n#if test -f /home/postfix/transport.over_ride\r\n# then\r\n#  cat /home/postfix/transport.over_ride >> /home/postfix/transport\r\n#fi \r\n#\r\n#sudo -n /home/engines/scripts/engine/sudo/_postmap.sh transport\r\n# \r\n#\r\n#exit 0\r\n#"
         },
         "read_script": {
           "language": "sh",
-          "content": "#!/bin/sh\r\n\r\nif test -f /home/engines/scripts/configurators/saved/smarthost\r\nthen\r\n\tcat /home/engines/scripts/configurators/saved/smarthost\r\nelse\r\n\techo '{\"smarthost_hostname\":\"Not Set\"}'\r\nfi\r\nexit 0"
+          "content": "#!/bin/sh\r\n\r\nif test -f /home/engines/scripts/configurators/saved/smarthost\r\nthen\r\n\t. /home/engines/scripts/configurators/saved/smarthost\r\n\t echo '{\"smart_hostname\":\"'$smart_hostname'\",\r\n           \"smart_host_port\":\"'$smart_host_port'\",\r\n           \"smart_host_user\":\"'$smart_host_user'\",\r\n           \"auth_type\":\"'$auth_type'\",\r\n           \"enabled\":\"'$enabled'\",\r\n           \"smart_host_passwd\":\"'$smart_host_passwd'\"} '\r\nelse\r\n\techo '{\"smarthost_hostname\":\"Not Set\"}'\r\nfi\r\nexit 0"
         }
       },
       {
@@ -252,11 +390,11 @@
         ],
         "set_script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\nfunction build_templated_mapfile {\r\n if test -f /home/engines/templates/$map_file \r\n  then\r\n\trm /home/postfix/$map_file\r\n fi\r\n  \r\n cat /home/engines/templates/$map_file | while read LINE\r\n do\r\n  eval echo $LINE >> /home/postfix/$map_file\r\n done\r\nsudo -n /home/engines/scripts/engine/_postmap.sh $map_file\r\n}\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/default_domain\r\nparms_to_file_and_env\r\n\r\nrequired_values=\"domain_name\"\r\ncheck_required_values \r\n\r\necho ${domain_name} >/home/engines/scripts/configurators/saved/domain\r\n\r\nsudo -n /home/engines/scripts/engine/_set_mailname.sh smtp.${domain_name}\r\n\r\nfor map_file in generic sender_canonical\r\ndo\r\n build_templated_mapfile\r\ndone\r\n \r\n\r\n\t\r\ncp /home/engines/templates/transport /home/postfix/\r\n\r\nif test -f /etc/postfix/transport.smart \r\n then\r\n  if test `wc -c /etc/postfix/transport.smart | cut -f 1 -d\" \" ` -gt 4\r\n   then\r\n\tcat /etc/postfix/transport.smart >> /home/postfix/transport \r\n  fi\r\nfi\r\n\r\nif ! test -z $deliver_local \r\n then\r\n  if test  $deliver_local -eq 1 \r\n   then                 \r\n\t echo ${domain_name} :[email.engines.internal]\t>> /home/postfix/transport \t\t\t\r\n   fi\r\nfi\t\r\nsudo -n /home/engines/scripts/engine/_postmap.sh transport\r\n\r\n\r\nexit $?\r\n"
+          "content": "#!/bin/sh\r\n\r\n \r\nbuild_templated_mapfile()\r\n {\r\nif test -f /home/engines/templates/$map_file \r\n  then\r\n   if test -f /home/postfix/$map_file\r\n    then\r\n\t rm /home/postfix/$map_file\r\n\tfi \r\n   \r\n  cat /home/engines/templates/$map_file | while read LINE\r\n  do\r\n   eval echo \"$LINE\" >> /home/postfix/$map_file\r\n  done\r\n sudo -n /home/engines/scripts/engine/sudo/_postmap.sh $map_file\r\nfi\r\n}\r\n . /home/engines/functions/checks.sh\r\nrequired_values=\"domain_name\"\r\ncheck_required_values \r\n\r\necho -n ${domain_name} >/home/engines/scripts/configurators/saved/domain\r\n\r\nif $deliver_local = true\r\n then\r\n  echo -n $deliver_local > /home/engines/scripts/configurators/saved/deliver_local\r\nelse \r\n  rm /home/engines/scripts/configurators/saved/deliver_local\r\nfi\r\n\r\nsudo -n /home/engines/scripts/engine/sudo/_set_mailname.sh smtp.${domain_name}\r\n\r\nfor map_file in generic sender_canonical aliases/aliases\r\ndo\r\n build_templated_mapfile\r\ndone\r\n \r\n/home/engines/scripts/configurators/build_transport.sh\r\n\t\r\n#cp /home/engines/templates/transport /home/postfix/maps/\r\n#\r\n#if test -f /etc/postfix/transport.smart \r\n# then\r\n#  if test `wc -c /etc/postfix/transport.smart | cut -f 1 -d\" \" ` -gt 4\r\n#   then\r\n#\tcat /etc/postfix/transport.smart >> /home/postfix/maps/transport \r\n#  fi\r\n#fi\r\n#\r\n#if ! test -z $deliver_local \r\n# then\r\n#  if test $deliver_local = true \r\n#   then                 \r\n#\t echo ${domain_name} :[email.engines.internal] >> /home/postfix/maps/transport \t\t\t\r\n#   fi\r\n#fi\t\r\n#if test -f /etc/postfix/maps/transport.over_ride\r\n# then\r\n#  cp /etc/postfix/maps/transport.over_ride /home/postfix/maps/transport \r\n#  if test -f /home/postfix/maps/transport.smart \r\n#   then\r\n#    if test `wc -c home/postfix/maps/transport.smart | cut -f 1 -d\" \" ` -gt 4\r\n#     then\r\n#\t   cat home/postfix/maps/transport.smart >> /home/postfix/maps/transport \r\n#    fi\r\n#  fi\r\n#fi \r\n#sudo -n /home/engines/scripts/engine/sudo/_transport_over_ride.sh\r\n#sudo -n /home/engines/scripts/engine/sudo/_postmap.sh transport\r\n\r\nexit $?\r\n\r\n"
         },
         "read_script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\nif test -f /home/engines/scripts/configurators/saved/default_domain\r\n then\r\n\tcat /home/engines/scripts/configurators/saved/default_domain\r\nelse\r\n\techo '{\"default_domain\":\"Not Set\"}'\r\nfi\r\nexit 0"
+          "content": "#!/bin/sh\r\n\r\nif test -f /home/engines/scripts/configurators/saved/deliver_local\r\n then\r\n  deliver_local=true\r\n  #`cat /home/engines/scripts/configurators/saved/deliver_local`\r\n  else\r\n    deliver_local=false\r\nfi  \r\n \r\nif test -f /home/engines/scripts/configurators/saved/domain\r\n then\r\n    domain_name=`cat /home/engines/scripts/configurators/saved/domain`   \r\n\techo '{\"domain_name\":\"'$domain_name'\",\"deliver_local\":\"'$deliver_local'\"}'\r\nelse\r\n\techo '{\"domain_name\":\"Not Set\",\"deliver_local\":\"false\"}'\r\nfi\r\nexit 0\r\n\r\n"
         }
       },
       {
@@ -298,7 +436,13 @@
         ],
         "set_script": {
           "language": "sh",
-          "content": "#!/bin/bash\r\n\r\n. /home/engines/functions/params_to_env.sh\r\nPARAMS_FILE=/home/engines/scripts/configurators/saved/notifications_email\r\nparms_to_file_and_env\r\n     \r\n     \r\nrequired_values=\"notifications_email\"\r\ncheck_required_values \r\n\r\n\r\nif test -z $postmaster_email\r\n  then\r\n   postmaster_email=$notifications_email fi\r\nif test -z $hostmaster_email\r\n  then\r\n   hostmaster_email=$notifications_email\r\nfi\r\nif test -z $webmaster_email\r\n  then\r\n   webmaster_email=$notifications_email\r\nfi \r\n\r\n\r\nALIAS_FILE=/tmp/aliases\r\ncat /home/engines/templates/aliases | while read LINE\r\ndo\r\n eval echo $LINE >> $ALIAS_FILE\r\ndone\r\n\r\nsudo -n /home/engines/scripts/configurators/_$0"
+          "content": "#!/bin/sh\r\n . /home/engines/functions/checks.sh\r\n\r\n\r\n     \r\nrequired_values=\"notifications_email\"\r\ncheck_required_values \r\n\r\n\r\nif test -z $postmaster_email\r\n  then\r\n   postmaster_email=$notifications_email \r\nfi\r\nif test -z $hostmaster_email\r\n  then\r\n   hostmaster_email=$notifications_email\r\nfi\r\nif test -z $webmaster_email\r\n  then\r\n   webmaster_email=$notifications_email\r\nfi \r\n     echo \"notifications_email=$notifications_email\r\n     \t\tpostmaster_email=$postmaster_email\r\n     \t\thostmaster_email=$hostmaster_email\r\n     \t\twebmaster_email=$webmaster_email\r\n     \"> /home/engines/scripts/configurators/saved/notifications_email\r\n\r\nALIAS_FILE=/tmp/aliases\r\ncat /home/engines/templates/aliases | while read LINE\r\ndo\r\n eval echo \"$LINE\" >> $ALIAS_FILE\r\ndone\r\n\r\nsudo -n /home/engines/scripts/configurators/sudo/_set_notifications_email.sh\r\n\r\n\r\n"
+        },
+        "set_script_sudo": {
+          "content": "#!/bin/sh\r\nmv /tmp/aliases /etc/postfix/maps/aliases/\r\npostmap /etc/postfix/maps/aliases/aliases"
+        },
+        "read_script": {
+          "content": "#!/bin/sh\r\n\r\nif test -f /home/engines/scripts/configurators/saved/notifications_email\r\nthen\r\n    . /home/engines/scripts/configurators/saved/notifications_email\r\n     echo '{\"notifications_email\":\"'$notifications_email'\",\r\n     \t\t\"postmaster_email\":\"'$postmaster_email'\",\r\n     \t\t\"hostmaster_email\":\"'$hostmaster_email'\",\r\n     \t\t\"webmaster_email\":\"'$webmaster_email'\"}'\r\nelse\r\n\techo '{\"notifications_email\":\"Not Set\"}'\r\nfi\r\nexit 0"
         }
       },
       {
@@ -311,8 +455,17 @@
               "type": "integer"
             }
           }
-        ]
+        ],
+        "set_script": {
+          "content": "#!/bin/sh\r\n\r\n . /home/engines/functions/checks.sh\r\nrequired_values=\"max_size\"\r\ncheck_required_values\r\n \r\n if test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n then \r\n   curr=`cat /home/engines/scripts/configurators/saved/mail_message_size`\r\n    if test $curr -eq $max_size\r\n      then \r\n       exit 0\r\n    fi\r\nfi      \r\n\r\necho -n $max_size > /home/engines/scripts/configurators/saved/mail_message_size\r\n \r\nsudo -n /home/engines/scripts/configurators/sudo/_rebuild_main.sh\r\n"
+        },
+        "read_script_sudo": {
+          "content": "#!/bin/sh\r\nif test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n then\r\n  max_size=`cat /home/engines/scripts/configurators/saved/mail_message_size`\r\nelse\r\n max_size=10240000\r\nfi \r\n\r\necho '{\"max_size\":\"'$max_size'\"}'\r\n\r\nexit 0 \r\n"
+        }
       }
+    ],
+    "log_directories": [
+      "/var/log"
     ]
   }
 }
