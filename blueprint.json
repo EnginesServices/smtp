@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2020-05-19T15:14:15+10:00"
+    "timestamp": "2020-05-19T16:21:22+10:00"
   },
   "software": {
     "base": {
@@ -95,16 +95,6 @@
           "fw_user": "postfix",
           "exclude_from_backup": "false"
         }
-      }
-    ],
-    "template_files": [
-      {
-        "path": "/some/tenm",
-        "language": "lua",
-        "content": "sd\r\nlua contaet",
-        "user": "f",
-        "group": "f",
-        "permissions": "755"
       }
     ],
     "consumer_scripts": {
