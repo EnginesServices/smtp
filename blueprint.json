@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2020-05-19T13:11:24+10:00"
+    "timestamp": "2020-05-19T15:14:15+10:00"
   },
   "software": {
     "base": {
@@ -105,13 +105,6 @@
         "user": "f",
         "group": "f",
         "permissions": "755"
-      }
-    ],
-    "replacement_strings": [
-      {
-        "string": "string",
-        "source_file": "src",
-        "destination_file": "dest"
       }
     ],
     "consumer_scripts": {
