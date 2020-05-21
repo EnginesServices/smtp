@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2020-05-21T10:04:23+10:00"
+    "timestamp": "2020-05-21T13:38:12+10:00"
   },
   "software": {
     "base": {
@@ -47,14 +47,14 @@
     "scripts": {
       "start": {
         "language": "sh",
-        "content": "#!/bin/sh\r\n\r\nPID_FILE=/tmp/sleep.pid\r\nexport PID_FILE\r\n\r\nKILL_SCRIPT=/home/engines/scripts/signal/kill_sleep.sh\r\nexport KILL_SCRIPT\r\n\r\n. /home/engines/functions/trap.sh\r\ninit_dbs()\r\n{\r\n  \r\n  \r\n}\r\n\r\nservice_first_run_check\r\n\r\n\r\n\r\nsudo -nu opendkim /home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\nsudo -n -u opendkim /usr/sbin/opendkim  -l -W -v\r\necho $! > /home/engines/run/opendkim.pid \r\n\r\nsudo -n /home/engines/scripts/startup/sudo/_start_postfix.sh \r\nr=$?\r\n\r\nif test $r -eq 0\r\n then\r\n    startup_complete\r\n\tsleep 5\t\r\n else\r\n  echo \"Failed with $r\"\r\n  exit $r\t  \r\nfi\r\n\r\n\r\nwhile ! test -f /home/engines/run/flags/sig_term -o -f /home/engines/run/flags/sig_quit\r\n do \t\t\r\n\t if ! test -f /var/spool/postfix/pid/master.pid\r\n\t  then\r\n\t   echo Exit as master pid file missing \r\n\t   break\r\n\t fi\r\n    sleep 120 &\r\n    echo $! >/tmp/sleep.pid\r\n\twait \t\t\r\n\texit_code=$?\t\t\r\ndone\t\r\n\r\n\r\n/home/engines/scripts/signal/kill_sleep.sh\r\n\r\nshutdown_complete\r\n\r\n"
+        "content": "#!/bin/sh\r\n\r\nPID_FILE=/tmp/sleep.pid\r\nexport PID_FILE\r\n\r\nKILL_SCRIPT=/home/engines/scripts/signal/kill_sleep.sh\r\nexport KILL_SCRIPT\r\n\r\n. /home/engines/functions/trap.sh\r\n\r\nservice_first_run_check\r\n\r\nsudo -n /home/engines/scripts/startup/sudo/start.sh prepare\r\n\r\nsudo -n /home/engines/scripts/startup/sudo/start.sh start\r\nr=$?\r\n\r\nif test $r -eq 0\r\n then\r\n    startup_complete\r\n\tsleep 5\t\r\n else\r\n  echo \"Failed with $r\"\r\n  exit $r\t  \r\nfi\r\n\r\n\r\nwhile ! test -f /home/engines/run/flags/sig_term -o -f /home/engines/run/flags/sig_quit\r\n do \t\t\r\n\t if ! test -f /var/spool/postfix/pid/master.pid\r\n\t  then\r\n\t   echo Exit as master pid file missing \r\n\t   break\r\n\t fi\r\n    sleep 120 &\r\n    echo $! >/tmp/sleep.pid\r\n\twait \t\t\r\n\texit_code=$?\t\t\r\ndone\t\r\n\r\n\r\n/home/engines/scripts/signal/kill_sleep.sh\r\n\r\nshutdown_complete\r\n\r\n"
       },
       "start_sudo": {
-        "content": "#!/bin/sh\r\n\r\nif test -f /var/spool/postfix/pid/master.pid\r\n then\r\n\trm /var/spool/postfix/pid/master.pid\r\n fi\r\n\r\n/home/engines/scripts/startup/sudo/_setup_dirs.sh\r\n\r\nfor map_file in transport generic smarthost_passwd aliases/aliases\r\n do \r\n  if ! test -f /etc/postfix/${map_file}.db\r\n   then\r\n     /home/engines/scripts/engine/sudo/_postmap.sh ${map_file}\r\n  fi  \r\ndone \r\n\r\n/usr/lib/postfix/sbin/master -w"
+        "content": "#!/bin/sh\r\ncreate_dirs() \r\n{\r\nfor dir_to_create in $dirs_to_create\r\ndo\r\n  if ! test -d $dir_to_create\r\n   then\r\n     mkdir -p  $dir_to_create\r\n  fi\r\n  if ! test -z $dir_ownership\r\n   then\r\n    chown -R $dir_ownership $dir_to_create\r\n  fi\r\ndone\r\n\r\nsetup() \r\n{\r\ndirs_to_create=\"/etc/postfix/maps/ /etc/postfix/maps/aliases/\"\r\ndir_ownership=postfix\r\n\r\ncreate_dirs\r\n\r\npostfix set-permissions\r\n\r\nchown postfix /home/engines/scripts/configurators/saved/\r\nchown opendkim /etc/opendkim/keys \r\n\r\nsudo -nu opendkim /home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\n\r\n}\r\n\r\nstart()\r\n{\r\nsudo -n -u opendkim /usr/sbin/opendkim  -l -W -v\r\necho $! > /home/engines/run/opendkim.pid \r\n\r\n  if test -f /var/spool/postfix/pid/master.pid\r\n   then\r\n\trm /var/spool/postfix/pid/master.pid\r\n  fi\r\n  /usr/lib/postfix/sbin/master -w\r\n}\r\n\r\nif test -z $1\r\n then\r\n  1=start\r\nfi\r\n\r\ncase $1 in\r\n start)\r\n  start\r\n prepare)\r\n   setup\r\nesac"
       },
       "first_run": {
         "language": "sh",
-        "content": "#!/bin/sh\r\n\r\n\r\nif ! test -f /etc/postfix/mailname\r\n then\r\n sudo -n /home/engines/scripts/engine/sudo/_set_mailname.sh \"smtp.engines.internal\"\r\n fi\r\n\r\nif ! test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n  then\r\n    max_size=10240000 /home/engines/scripts/configurators/set_max_send_size.sh\r\nfi\r\n\r\nfor file in transport generic smarthost_passwd aliases/aliases\r\n do\r\n  sudo -n /home/engines/scripts/engine/sudo/_postmap.sh $file\r\ndone \r\n"
+        "content": "#!/bin/sh\r\n\r\n\r\nif ! test -f /etc/postfix/mailname\r\n then\r\n sudo -n /home/engines/scripts/engine/sudo/_set_mailname.sh \"smtp.engines.internal\"\r\n fi\r\n\r\nif ! test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n  then\r\n    max_size=10240000 /home/engines/scripts/configurators/set_max_send_size.sh\r\nfi\r\n\r\nfor file in transport generic smarthost_passwd aliases/aliases\r\n do\r\n  sudo -n /home/engines/scripts/engine/sudo/postmap.sh $file\r\ndone \r\n"
       },
       "first_run_sudo": {
         "language": "sh"
