@@ -22,7 +22,7 @@
         "label": "smtp"
       }
     },
-    "timestamp": "2020-05-21T14:52:07+10:00"
+    "timestamp": "2020-05-21T18:21:51+10:00"
   },
   "software": {
     "base": {
@@ -52,6 +52,9 @@
       "start_sudo": {
         "content": "#!/bin/sh\r\nsetup() \r\n{\r\nfor dir_to_create in $dirs_to_create\r\ndo\r\n  if ! test -d $dir_to_create\r\n   then\r\n     mkdir -p  $dir_to_create\r\n  fi\r\n  if ! test -z $dir_ownership\r\n   then\r\n    chown -R $dir_ownership $dir_to_create\r\n  fi\r\ndone\r\n\r\n\r\ndirs_to_create=\"/etc/postfix/maps/ /etc/postfix/maps/aliases/\"\r\ndir_ownership=postfix\r\n\r\ncreate_dirs\r\n\r\npostfix set-permissions\r\n\r\nchown postfix /home/engines/scripts/configurators/saved/\r\nchown opendkim /etc/opendkim/keys \r\n}\r\n\r\nstart()\r\n{\r\ncreate_dirs() \r\n{\r\nfor dir_to_create in $dirs_to_create\r\ndo\r\n  if ! test -d $dir_to_create\r\n   then\r\n     mkdir -p  $dir_to_create\r\n  fi\r\n  if ! test -z $dir_ownership\r\n   then\r\n    chown -R $dir_ownership $dir_to_create\r\n  fi\r\ndone\r\n}\r\n\r\ndirs_to_create=\"/etc/postfix/maps/ /etc/postfix/maps/aliases/\"\r\ndir_ownership=postfix\r\n\r\ncreate_dirs\r\n\r\npostfix set-permissions\r\n\r\nchown postfix /home/engines/scripts/configurators/saved/\r\nchown opendkim /etc/opendkim/keys \r\n\r\n\r\n}\r\n\r\nif test -z $1\r\n then\r\n  1=start\r\nfi\r\n\r\ncase $1 in\r\n start)\r\n  start\r\n  ;;\r\n prepare)\r\n   setup\r\n   ;;\r\nesac"
       },
+      "install": {
+        "content": "#!/bin/sh\r\n\r\ncp /etc/resolv.conf /var/spool/postfix/etc/ \r\ncp /etc/services /var/spool/postfix/etc/ \r\n/home/engines/scripts/build/post_build_clean.sh\r\nmkdir \t/home/postfix \\\r\n\t\t\t/home/postfix/maps/ \\\r\n\t\t\t/usr/share/doc/postfix/html \\\r\n\t \t  \t/usr/lib/postfix/libutil \\\r\n\t \t  \t/usr/lib/postfix/libmaster \\\r\n\t \t  \t/usr/lib/postfix/libdns \\\r\n\t \t  \t/usr/lib/postfix/libtls \\\r\n\t \t  \t/usr/lib/postfix/cdb \\\r\n\t \t  \t/usr/lib/postfix/ldap \\\r\n\t \t  \t/usr/lib/postfix/lmdb \\\r\n\t \t  \t/usr/lib/postfix/mysql \\\r\n\t \t  \t/usr/lib/postfix/pcre \\\r\n\t \t  \t/usr/lib/postfix/pgsql \\\r\n\t \t  \t/usr/lib/postfix/sdbm \\\r\n\t \t  \t/usr/lib/postfix/sqlite \\\r\n\t \t  \t/etc/postfix/dynamicmaps.cf.d \\\r\n\t \t  \t/etc/postfix/makedefs.out \\\r\n\t \t  \t/etc/postfix/postfix-files.d \\\r\n\t \t  \t/usr/lib/postfix/libglobal  \r\n\t/usr/sbin/postfix -c /etc/postfix/ create-missing set-permissions\r\n\tmkdir -p /home/engines/scripts/configurators/saved &&\\\r\n\tmkdir -p /etc/dkim/keys &&\\\r\n\tchown -R opendkim /etc/dkim &&\\\r\n\tchown -R postfix /home/postfix/ &&\\\r\n\tchown postfix /home/engines/scripts/configurators/saved /home/postfix &&\\\r\n\tchgrp postfix /home/engines/scripts/configurators/*.sh &&\\\r\n\tcp -rp /var/spool/postfix /tmp/spool_postfix &&\\\r\n\tmkdir -p /etc/opendkim &&\\\r\n\techo 127.0.0.1 >>/etc/opendkim/trusted.hosts &&\\\r\n\techo  172.17.0.0/24 >>/etc/opendkim/trusted.hosts &&\\\r\n\techo smtp.engines.internal >>/etc/opendkim/trusted.hosts &&\\\r\n\ttouch /etc/opendkim/SigningTable /etc/opendkim/KeyTable &&\\\r\n\tchown opendkim -R /etc/opendkim/\r\n"
+      },
       "first_run": {
         "language": "sh",
         "content": "#!/bin/sh\r\n\r\n\r\nif ! test -f /etc/postfix/mailname\r\n then\r\n sudo -n /home/engines/scripts/engine/sudo/_set_mailname.sh \"smtp.engines.internal\"\r\n fi\r\n\r\nif ! test -f /home/engines/scripts/configurators/saved/mail_message_size\r\n  then\r\n    max_size=10240000 /home/engines/scripts/configurators/set_max_send_size.sh\r\nfi\r\n\r\nfor file in transport generic smarthost_passwd aliases/aliases\r\n do\r\n  sudo -n /home/engines/scripts/engine/sudo/_postmap.sh $file\r\ndone \r\n"
@@ -66,6 +69,12 @@
     "system_packages": [
       {
         "package": "postfix"
+      },
+      {
+        "package": "opendkim"
+      },
+      {
+        "package": "opendkim-tools"
       }
     ],
     "service_configurations": [
