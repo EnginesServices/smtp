@@ -1,0 +1,3 @@
+#!/bin/sh
+
+TMP_FILE=`mktemp`\r\npostqueue -j 2> $TMP_FILE.err 1> $TMP_FILE\r\nresult=$?\r\n\r\nif test $result -ne 0\r\n then\r\n   string_for_json=`cat $TMP_FILE.err`\r\n   rm /tmp/err\r\n   string_for_json=`echo $string_for_json | tr -d \"'\\r\\\"\\t\\f\\b\\n\\v\"`\r\n   echo '{\"Result\":\"FAILED\",\"ReturnCode\":\"'$result'\",\"Error\":\"'$string_for_json'\"}'\r\nelse\r\n  echo '{\"email_queue\":['\r\n  one=1\r\n    cat $TMP_FILE | while read LINE\r\n     do\r\n       if test $one -eq 1\r\n         then\r\n          one=0\r\n       else\r\n          echo -n \",\"\r\n       fi\r\n      echo  -n $LINE\r\n    done\r\n  echo ']}'\r\nfi\r\n\r\nfor FILE in $TMP_FILE.err $TMP_FILE\r\n do\r\n  if test -f $FILE\r\n   then\r\n     rm $FILE\r\n  fi\r\ndone
