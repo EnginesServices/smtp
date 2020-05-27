@@ -7,31 +7,31 @@
   },
   "licenses": [
   ],
-  "service_configurations": [
+  "bindings": [
     {
-      "type_path": "filesystem/local/filesystem",
+      "identifier": "spool",
+      "descriptor": {
+        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "branch": "spaces"
+      },
       "variables": {
-        "service_name": "spool",
-        "volume_src": "",
-        "engine_path": "/var/spool/postfix/",
-        "permissions": "rw",
+        "path": "/var/^^identifier^^/postfix/",
         "user": "postfix",
         "group": "postfix",
-        "fw_user": "postfix",
-        "exclude_from_backup": "false"
+        "fw_user": "postfix"
       }
     },
     {
-      "type_path": "filesystem/local/filesystem",
+      "identifier": "dkim",
+      "descriptor": {
+        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "branch": "spaces"
+      },
       "variables": {
-        "service_name": "dkim",
-        "volume_src": "",
-        "engine_path": "/etc/opendkim/keys",
-        "permissions": "rw",
+        "path": "/etc/opendkim/keys",
         "user": "",
         "group": "postfix",
-        "fw_user": "postfix",
-        "exclude_from_backup": "false"
+        "fw_user": "postfix"
       }
     }
   ],
