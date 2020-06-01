@@ -1,0 +1,3 @@
+#!/bin/sh
+
+. /home/engines/functions/checks.sh\r\n \r\ndomain_name=$1\r\n\r\n\r\nrequired_values=\"domain_name\"\r\ncheck_required_values\r\n\r\nif test -f /etc/opendkim/keys/$domain_name/mail.private\r\n then\r\n  echo '{\"error\":\"Domain key exists for '$domain_name'\"}'\r\n  exit 2\r\nfi\r\n\r\ndomain_dir=/etc/opendkim/keys/$domain_name\r\nmkdir -p $domain_dir\r\ncat - > $domain_dir/mail.private\r\nchmod go-rw $domain_dir/mail.private\r\nchown opendkim -R $domain_dir\r\nmv /tmp/public > $domain_dir/mail.txt\r\nchmod g+r $domain_dir/mail.txt\r\n/home/engines/scripts/engine/sudo/rebuild_dkim.key.sh\r\n\r\n echo '{\"Success\":\"Domain key for '$domain_name' Imported\"}'\r\nexit 0
