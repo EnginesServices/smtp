@@ -1,10 +1,7 @@
 {
-  "title": "mysql server",
-  "description": "mysql",
-  "memory_usage": {
-    "required": 64,
-    "recommended": 96
-  },
+  "title": "smtp",
+  "description": "email server",
+  "memory_usage": 96,
   "licenses": [
   ],
   "bindings": [
@@ -41,16 +38,6 @@
         "image": "engines/servicebase",
         "tag": "current"
       },
-      "state": {
-        "type_path": "smtp",
-        "deployment_type": "worker",
-        "default_stop_timeout": 0,
-        "restart_attempts": 0
-      },
-      "disposition": [
-        "attach_post_build",
-        "start_syslog"
-      ],
       "os_packages": [
         {
           "name": "postfix"
@@ -61,20 +48,7 @@
         {
           "name": "opendkim-tools"
         }
-      ],
-      "log_directories": [
-        "/var/log"
-      ],
-      "custom_files": [
-        {
-          "type": "signal",
-          "path": "somehwyere whay is  this dor",
-          "language": "sh",
-          "content": "custome ?",
-          "execute": true,
-          "sudo": true
-        }
       ]
-    ]
-  }
+    }
+  ]
 }
