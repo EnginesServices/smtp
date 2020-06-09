@@ -32,6 +32,10 @@
       }
     }
   ],
+  "user": {
+    "name": "postfix",
+    "create": true
+  },
   "stages": [
     {
       "starter": {
