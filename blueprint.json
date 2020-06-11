@@ -13,9 +13,7 @@
       },
       "variables": {
         "path": "/var/^^identifier^^/postfix/",
-        "user": "postfix",
-        "group": "postfix",
-        "fw_user": "postfix"
+        "user": "postfix"
       }
     },
     {
@@ -27,13 +25,13 @@
       "variables": {
         "path": "/etc/opendkim/keys",
         "user": "",
-        "group": "postfix",
-        "fw_user": "postfix"
+        "group": "^^spool.user^^"
       }
     }
   ],
   "user": {
-    "name": "postfix",
+    "identifier": "22003",
+    "name": "^^spool.user^^",
     "create": true
   },
   "stages": [
