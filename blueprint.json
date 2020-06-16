@@ -8,7 +8,7 @@
     {
       "identifier": "spool",
       "descriptor": {
-        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "repository": "https://github.com/MarkRatjens/volmgr.git",
         "branch": "spaces"
       },
       "variables": {
@@ -19,7 +19,7 @@
     {
       "identifier": "dkim",
       "descriptor": {
-        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "repository": "https://github.com/MarkRatjens/volmgr.git",
         "branch": "spaces"
       },
       "variables": {
