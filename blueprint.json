@@ -12,7 +12,7 @@
         "branch": "spaces"
       },
       "variables": {
-        "path": "/var/^^identifier^^/postfix/",
+        "path": "/var/^^identifier^^/postfix",
         "user": "postfix"
       }
     },
