@@ -12,7 +12,7 @@
         "branch": "spaces"
       },
       "variables": {
-        "path": "/var/^^identifier^^/postfix",
+        "path": "/var/spool/postfix",
         "user": "postfix"
       }
     },
@@ -25,13 +25,13 @@
       "variables": {
         "path": "/etc/opendkim/keys",
         "user": "",
-        "group": "^^spool.user^^"
+        "group": "postfix"
       }
     }
   ],
   "user": {
     "identifier": "22003",
-    "name": "^^spool.user^^",
+    "name": "postfix",
     "create": true
   },
   "stages": [
