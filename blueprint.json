@@ -8,31 +8,29 @@
     {
       "identifier": "spool",
       "descriptor": {
-        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "repository": "https://github.com/MarkRatjens/volmgr.git",
         "branch": "spaces"
       },
       "variables": {
-        "path": "/var/^^identifier^^/postfix/",
-        "user": "postfix",
-        "group": "postfix",
-        "fw_user": "postfix"
+        "path": "/var/spool/postfix",
+        "user": "postfix"
       }
     },
     {
       "identifier": "dkim",
       "descriptor": {
-        "repository": "https://github.com/EnginesServices/filesystem.git",
+        "repository": "https://github.com/MarkRatjens/volmgr.git",
         "branch": "spaces"
       },
       "variables": {
         "path": "/etc/opendkim/keys",
         "user": "",
-        "group": "postfix",
-        "fw_user": "postfix"
+        "group": "postfix"
       }
     }
   ],
   "user": {
+    "identifier": "22003",
     "name": "postfix",
     "create": true
   },
